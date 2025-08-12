@@ -148,3 +148,39 @@ variable "subnet_prefix" {
   type = string
   default = "192.168"
 }
+
+variable "snat_segment_subnet" {
+  type = string
+}
+
+variable "infra_segment_subnet" {
+  type = string
+}
+
+variable "infra_management_subnet" {
+  type = string
+}
+
+variable "infra_management_gateway" {
+  type = string
+}
+
+variable "infra_management_reserved_ip_start" {
+  type = string
+}
+
+variable "infra_management_reserved_ip_end" {
+  type = string
+}
+
+variable "deploy_segment_subnet" {
+  type = string
+}
+
+variable "service_segment_subnet" {
+  type = string
+}
+
+variable "om_nat_ip" {
+  type = string
+}

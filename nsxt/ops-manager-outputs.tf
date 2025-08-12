@@ -26,9 +26,9 @@ locals {
     ops_manager_private_ip      = nsxt_policy_nat_rule.dnat_om.translated_networks[0]
 
     management_subnet_name               = nsxt_policy_segment.infrastructure_sg.display_name
-    management_subnet_cidr               = "${var.subnet_prefix}.1.0/24"
-    management_subnet_gateway            = "${var.subnet_prefix}.1.1"
-    management_subnet_reserved_ip_ranges = "${var.subnet_prefix}.1.1-${var.subnet_prefix}.1.10"
+    management_subnet_cidr               = "${var.infra_management_subnet}"
+    management_subnet_gateway            = "${var.infra_management_gateway}"
+    management_subnet_reserved_ip_ranges = "${var.infra_management_reserved_ip_start}-${var.infra_management_reserved_ip_end}"
 
     allow_unverified_ssl      = var.allow_unverified_ssl
     disable_ssl_verification  = !var.allow_unverified_ssl

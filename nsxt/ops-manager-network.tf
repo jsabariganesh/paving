@@ -25,7 +25,7 @@ resource "nsxt_policy_segment" "infrastructure_sg" {
   connectivity_path   = nsxt_policy_tier1_gateway.t1_infrastructure.path
 
   subnet {
-    cidr = "${var.subnet_prefix}.1.1/24"
+    cidr = "${var.infra_segment_subnet}"
   }
   tag {
     scope = "terraform"
@@ -59,7 +59,42 @@ resource "nsxt_policy_segment" "deployment_sg" {
   transport_zone_path = data.nsxt_policy_transport_zone.east-west-overlay.path
   connectivity_path   = nsxt_policy_tier1_gateway.t1_deployment.path
   subnet {
-    cidr = "${var.subnet_prefix}.2.1/24"
+    cidr = "${var.deploy_segment_subnet}"
+  }
+  tag {
+    scope = "terraform"
+    tag   = var.environment_name
+  }
+}
+
+resource "nsxt_policy_tier1_gateway" "t1_service" {
+  display_name = "${var.environment_name}-T1-Gateway-PAS-service"
+  description = "service Tier 1 Gateway."
+  tier0_path                = data.nsxt_policy_tier0_gateway.t0_gw.path
+  failover_mode   = "PREEMPTIVE"
+  edge_cluster_path = data.nsxt_policy_edge_cluster.edge_cluster.path
+  route_advertisement_types = [
+    "TIER1_IPSEC_LOCAL_ENDPOINT",
+    "TIER1_LB_VIP", "TIER1_NAT",
+    "TIER1_DNS_FORWARDER_IP",
+    "TIER1_STATIC_ROUTES",
+    "TIER1_LB_SNAT",
+    "TIER1_CONNECTED"
+  ]
+  tag {
+    scope = "terraform"
+    tag   = var.environment_name
+  }
+}
+
+resource "nsxt_policy_segment" "service_sg" {
+  display_name = "${var.environment_name}-PAS-service"
+  description      = "Segment for the service."
+  transport_zone_path = data.nsxt_policy_transport_zone.east-west-overlay.path
+  connectivity_path   = nsxt_policy_tier1_gateway.t1_service.path
+
+  subnet {
+    cidr = "${var.service_segment_subnet}"
   }
   tag {
     scope = "terraform"
@@ -77,7 +112,7 @@ resource "nsxt_policy_nat_rule" "snat_vm" {
   logging        = false
   firewall_match = "BYPASS"
 
-  source_networks     = ["${var.subnet_prefix}.0.0/16"]
+  source_networks     = ["${var.snat_segment_subnet}"]
   translated_networks = [var.nat_gateway_ip]
 
   tag {
@@ -96,7 +131,7 @@ resource "nsxt_policy_nat_rule" "snat_om" {
   logging        = false
   firewall_match = "BYPASS"
 
-  source_networks     = ["${var.subnet_prefix}.1.10"]
+  source_networks     = ["${var.om_nat_ip}"]
   translated_networks = [var.ops_manager_public_ip]
 
   tag {
@@ -116,7 +151,7 @@ resource "nsxt_policy_nat_rule" "dnat_om" {
   firewall_match = "BYPASS"
 
   destination_networks = [var.ops_manager_public_ip]
-  translated_networks  = ["${var.subnet_prefix}.1.10"]
+  translated_networks  = ["${var.om_nat_ip}"]
 
   tag {
     scope = "terraform"
@@ -160,3 +195,4 @@ resource "nsxt_policy_ip_block" "container_ip_block" {
     tag   = var.environment_name
   }
 }
+
